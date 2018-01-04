@@ -1,4 +1,4 @@
-package vsd
+package vsdclient
 
 import (
 	"encoding/json"

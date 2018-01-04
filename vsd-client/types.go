@@ -1,4 +1,4 @@
-package vsd
+package vsdclient
 
 import (
 	"k8s.io/kubernetes/pkg/registry/core/service/ipallocator"

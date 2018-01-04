@@ -18,7 +18,7 @@ var (
 	AgentServerPort string
 )
 
-func InitClient(conf *config.AgentConfig) error {
+func InitClient(conf *config.Config) error {
 
 	// Pick up Agent server port from startup configuration
 	AgentServerPort = conf.CniConfig.ServerPort
