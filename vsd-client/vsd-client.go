@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/OpenPlatformSDN/nuage-oci/config"
+	"github.com/OpenPlatformSDN/nuage-oci-agent/config"
 
 	"github.com/nuagenetworks/go-bambou/bambou"
 	"github.com/nuagenetworks/vspk-go/vspk"

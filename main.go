@@ -10,8 +10,8 @@ import (
 	"github.com/golang/glog"
 
 	cniagent "github.com/OpenPlatformSDN/nuage-cni/agent/server"
-	"github.com/OpenPlatformSDN/nuage-oci/config"
-	vsdclient "github.com/OpenPlatformSDN/nuage-oci/vsd-client"
+	"github.com/OpenPlatformSDN/nuage-oci-agent/config"
+	vsdclient "github.com/OpenPlatformSDN/nuage-oci-agent/vsd-client"
 )
 
 const errorLogLevel = 2
@@ -28,7 +28,7 @@ var (
 
 func Flags(conf *config.Config, flagSet *flag.FlagSet) {
 	flagSet.StringVar(&conf.ConfigFile, "config",
-		"./nuage-oci-config.yaml", "configuration file for Nuage OCI agent server. If this file is specified, all remaining arguments will be ignored")
+		"./nuage-oci-agent-config.yaml", "configuration file for Nuage OCI agent server. If this file is specified, all remaining arguments will be ignored")
 
 	// VSD flags
 	flagSet.StringVar(&conf.VsdConfig.Url, "vsdurl",

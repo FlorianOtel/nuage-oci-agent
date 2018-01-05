@@ -10,7 +10,7 @@ import (
 	"github.com/golang/glog"
 
 	agenttypes "github.com/OpenPlatformSDN/cni-plugin/nuage-cni-agent/types"
-	"github.com/OpenPlatformSDN/nuage-oci/config"
+	"github.com/OpenPlatformSDN/nuage-oci-agent/config"
 )
 
 var (

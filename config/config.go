@@ -8,7 +8,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// nuage-oci server -- configuration file
+// nuage-oci-agent server -- configuration file
 type Config struct {
 	// Not supplied in YAML config file
 	ConfigFile string `yaml:"-"`
