@@ -1,6 +1,6 @@
-# _Experimental_ Nuage Networks OCI plugin
+# _Experimental_ Nuage Networks OCI plugin -- Agent server 
 
-This is an _experimental_ Nuage Networks VSP plugin for OCI containers. 
+An _experimental_ Nuage Networks VSP plugin for OCI containers. This code repo contains the Nuage agent server part of the plugin. 
 
 The code is an _experimental_ work in progress. It is provided only as a use case for [Go SDK for Nuage Networks VSP](https://github.com/nuagenetworks/vspk-go/) and [Go SDK for Nuage Networks VRS](https://github.com/nuagenetworks/libvrsdk/).
 
