@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/glog"
 
-	cniagent "github.com/OpenPlatformSDN/nuage-cni/agent/server"
+	agentserver "github.com/OpenPlatformSDN/nuage-cni/agent/server"
 	"github.com/OpenPlatformSDN/nuage-oci-agent/config"
 	vsdclient "github.com/OpenPlatformSDN/nuage-oci-agent/vsd-client"
 )
@@ -98,7 +98,7 @@ func main() {
 		os.Exit(255)
 	}
 
-	if err := cniagent.Server(Config.AgentServerConfig); err != nil {
+	if err := agentserver.Server(Config.AgentServerConfig); err != nil {
 		glog.Fatalf("Failed to start OCI agent server: %s", err)
 	}
 
