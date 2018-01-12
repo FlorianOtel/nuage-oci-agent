@@ -1,0 +1,12 @@
+vsd-config:
+  url: https://172.16.254.11:7443
+  apiversion: v5_0
+  enterprise: runc-crio-test
+  domain: oci-containers-domain
+  certFile: /mnt/gw-disk/Go/src/github.com/OpenPlatformSDN/nuage-oci-agent/samples/certlogin-oci.pem 
+  keyFile: /mnt/gw-disk/Go/src/github.com/OpenPlatformSDN/nuage-oci-agent/samples/certlogin-oci-Key.pem 
+agent-config:
+  server-port: 7443
+  caFile: /mnt/gw-disk/Go/src/github.com/OpenPlatformSDN/nuage-oci-agent/samples/ca.crt
+  certcaFile: /mnt/gw-disk/Go/src/github.com/OpenPlatformSDN/nuage-oci-agent/samples/k8s-cri-o--20170926-1.pem
+  keyFile: /mnt/gw-disk/Go/src/github.com/OpenPlatformSDN/nuage-oci-agent/samples/k8s-cri-o--20170926-1.key

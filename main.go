@@ -3,18 +3,18 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path"
 
 	"github.com/golang/glog"
 
-	agentserver "github.com/OpenPlatformSDN/nuage-cni/agent/server"
 	"github.com/OpenPlatformSDN/nuage-oci-agent/config"
+
+	agentserver "github.com/OpenPlatformSDN/nuage-oci-agent/server"
 	vsdclient "github.com/OpenPlatformSDN/nuage-oci-agent/vsd-client"
 )
 
-const errorLogLevel = 2
+const errorLogLevel = "WARNING"
 
 var (
 	// Top level Agent Server Configuration
@@ -60,16 +60,27 @@ func Flags(conf *config.Config, flagSet *flag.FlagSet) {
 	// Set the values for log_dir and logtostderr.  Because this happens before flag.Parse(), cli arguments will override these.
 	// Also set the DefValue parameter so -help shows the new defaults.
 	// XXX - Make sure "glog" package is imported at this point, otherwise this will panic
-	log_dir := flagSet.Lookup("log_dir")
-	log_dir.Value.Set(fmt.Sprintf("/var/log/%s", path.Base(os.Args[0])))
-	log_dir.DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
-	logtostderr := flagSet.Lookup("logtostderr")
-	logtostderr.Value.Set("false")
-	logtostderr.DefValue = "false"
-	stderrlogthreshold := flagSet.Lookup("stderrthreshold")
-	stderrlogthreshold.Value.Set("2")
-	stderrlogthreshold.DefValue = "2"
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	flagSet.Lookup("log_dir").DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
+	flagSet.Lookup("logtostderr").DefValue = "false"
+	flagSet.Lookup("stderrthreshold").DefValue = errorLogLevel
+
+	flag.Parse()
+
+	// Set log_dir -- either to given value or to the default + create the directory
+	if mylogdir := flag.CommandLine.Lookup("log_dir").Value.String(); mylogdir != "" {
+		os.MkdirAll(mylogdir, os.ModePerm)
+	} else { // set it to default log_dir value
+		flag.CommandLine.Lookup("log_dir").Value.Set(flag.CommandLine.Lookup("log_dir").DefValue)
+		os.MkdirAll(flag.CommandLine.Lookup("log_dir").DefValue, os.ModePerm)
+	}
+
+}
+
+// Silly little wrapper around os.Exit(). Needed since os.Exit() does not honor defer calls and glog.Fatalf() looks ugly _and_ does not flush the logs.
+func osExit(context string, err error) {
+	glog.Errorf("%s: %s", context, err)
+	glog.Flush()
+	os.Exit(255)
 }
 
 func main() {
@@ -77,7 +88,6 @@ func main() {
 	Config = new(config.Config)
 
 	Flags(Config, flag.CommandLine)
-	flag.Parse()
 
 	if len(os.Args) == 1 { // With no arguments, print default usage
 		flag.PrintDefaults()
@@ -89,17 +99,15 @@ func main() {
 	glog.Infof("===> Starting %s...", path.Base(os.Args[0]))
 
 	if err := config.LoadConfig(Config); err != nil {
-		glog.Errorf("Cannot read configuration file: %s", err)
-		os.Exit(255)
+		osExit("Cannot read configuration file", err)
 	}
 
 	if err := vsdclient.InitClient(Config); err != nil {
-		glog.Errorf("VSD client error: %s", err)
-		os.Exit(255)
+		osExit("VSD client error", err)
 	}
 
 	if err := agentserver.Server(Config.AgentServerConfig); err != nil {
-		glog.Fatalf("Failed to start OCI agent server: %s", err)
+		osExit("Failed to start OCI agent server", err)
 	}
 
 }
