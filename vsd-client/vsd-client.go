@@ -40,18 +40,18 @@ func InitClient(conf *config.Config) error {
 		return bambou.NewBambouError("Nuage TLS API connection failed", err.Error())
 	}
 
-	if conf.VsdConfig.Enterprise == "" || conf.VsdConfig.Domain == "" {
+	if conf.Vsd.Enterprise == "" || conf.Vsd.Domain == "" {
 		return bambou.NewBambouError("Nuage VSD Enterprise and/or Domain are absent from configuration file", "")
 	}
 
 	//// Find the  Enterprise and Domain. They must be pre-existing in the VSD.
 
 	//// VSD Enterprise
-	if el, err := root.Enterprises(&bambou.FetchingInfo{Filter: "name == \"" + conf.VsdConfig.Enterprise + "\""}); err != nil {
+	if el, err := root.Enterprises(&bambou.FetchingInfo{Filter: "name == \"" + conf.Vsd.Enterprise + "\""}); err != nil {
 		return bambou.NewBambouError("Error fetching list of Enterprises from the VSD", err.Error())
 	} else {
 		if len(el) != 1 { // Given Enterprise doesn't exist
-			return bambou.NewBambouError("Cannot find VSD Enterprise: "+conf.VsdConfig.Enterprise, "VSD Enterprise not found")
+			return bambou.NewBambouError("Cannot find VSD Enterprise: "+conf.Vsd.Enterprise, "VSD Enterprise not found")
 		}
 
 		Enterprise = el[0]
@@ -59,11 +59,11 @@ func InitClient(conf *config.Config) error {
 	}
 
 	////  VSD Domain
-	if dl, err := root.Domains(&bambou.FetchingInfo{Filter: "name == \"" + conf.VsdConfig.Domain + "\""}); err != nil {
+	if dl, err := root.Domains(&bambou.FetchingInfo{Filter: "name == \"" + conf.Vsd.Domain + "\""}); err != nil {
 		return bambou.NewBambouError("Error fetching list of Domains from the VSD", err.Error())
 	} else {
 		if len(dl) != 1 {
-			return bambou.NewBambouError("Cannot find VSD Domain: "+conf.VsdConfig.Domain, "VSD Domain not found")
+			return bambou.NewBambouError("Cannot find VSD Domain: "+conf.Vsd.Domain, "VSD Domain not found")
 		}
 
 		Domain = dl[0]
@@ -72,6 +72,34 @@ func InitClient(conf *config.Config) error {
 
 	glog.Info("VSD client initialization completed")
 	return nil
+}
+
+// Get Zone.  Return nil if not found.
+func GetZone(zname string) *vspk.Zone {
+	if zl, err := root.Zones(&bambou.FetchingInfo{Filter: "name == \"" + zname + "\""}); err != nil {
+		glog.Errorf("Error fetching list of Zones from the VSD: %s", err)
+		return nil
+	} else {
+		if len(zl) != 1 {
+			glog.Errorf("Cannot find Zone: %s", zname)
+			return nil
+		}
+		return zl[0]
+	}
+}
+
+// Get Subnet.  Return nil if not found.
+func GetSubnet(sname string) *vspk.Subnet {
+	if sl, err := root.Subnets(&bambou.FetchingInfo{Filter: "name == \"" + sname + "\""}); err != nil {
+		glog.Errorf("Error fetching list of Subnets from the VSD: %s", err)
+		return nil
+	} else {
+		if len(sl) != 1 {
+			glog.Errorf("Cannot find Subnet: %s", sname)
+			return nil
+		}
+		return sl[0]
+	}
 }
 
 func GenerateMAC() string {
@@ -92,10 +120,10 @@ func GenerateMAC() string {
 
 // Create a connection to the VSD using X.509 certificate-based authentication
 func makeX509conn(conf *config.Config) error {
-	if cert, err := tls.LoadX509KeyPair(conf.VsdConfig.CertFile, conf.VsdConfig.KeyFile); err != nil {
+	if cert, err := tls.LoadX509KeyPair(conf.Vsd.CertFile, conf.Vsd.KeyFile); err != nil {
 		return err
 	} else {
-		mysession, root = vspk.NewX509Session(&cert, conf.VsdConfig.Url)
+		mysession, root = vspk.NewX509Session(&cert, conf.Vsd.Url)
 	}
 
 	// mysession.SetInsecureSkipVerify(true)
@@ -104,7 +132,7 @@ func makeX509conn(conf *config.Config) error {
 		return err
 	}
 
-	glog.Infof("vsd-client: Successfully established a connection to the VSD at URL is: %s\n", conf.VsdConfig.Url)
+	glog.Infof("vsd-client: Successfully established a connection to the VSD at URL is: %s\n", conf.Vsd.Url)
 
 	// glog.Infof("vsd-client: Successfuly established bambou session: %#v\n", *mysession)
 

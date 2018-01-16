@@ -13,8 +13,8 @@ type Config struct {
 	// Not supplied in YAML config file
 	ConfigFile string `yaml:"-"`
 	// Config file fields
-	VsdConfig         vsdConfig            `yaml:"vsd-config"`
-	AgentServerConfig nuagecni.AgentConfig `yaml:"agent-config"`
+	Vsd         vsdConfig            `yaml:"vsd-config"`
+	AgentServer nuagecni.AgentConfig `yaml:"agent-config"`
 }
 
 type vsdConfig struct {

@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "37IUcQswUwBeDGMvKMmyY9l2yRk=",
+			"path": "github.com/OpenPlatformSDN/nuage-cni/agent/server",
+			"revision": "cd36376b375d907e848d1f1d1bf6e05ad9f49300",
+			"revisionTime": "2018-01-12T14:11:33Z"
+		},
+		{
 			"checksumSHA1": "bl+QKNZSJBRsoNRcc29+TKuGKEY=",
 			"path": "github.com/OpenPlatformSDN/nuage-cni/agent/types",
 			"revision": "cd36376b375d907e848d1f1d1bf6e05ad9f49300",

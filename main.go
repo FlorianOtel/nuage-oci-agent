@@ -5,20 +5,23 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
+
+	"github.com/OpenPlatformSDN/nuage-oci-agent/server"
 
 	"github.com/golang/glog"
 
 	"github.com/OpenPlatformSDN/nuage-oci-agent/config"
 
-	agentserver "github.com/OpenPlatformSDN/nuage-oci-agent/server"
 	vsdclient "github.com/OpenPlatformSDN/nuage-oci-agent/vsd-client"
 )
 
-const errorLogLevel = "WARNING"
+const errorLogLevel = "INFO"
 
 var (
 	// Top level Agent Server Configuration
-	Config         *config.Config
+	Config = new(config.Config)
+
 	UseNetPolicies = false
 )
 
@@ -26,43 +29,44 @@ var (
 ////////
 ////////
 
-func Flags(conf *config.Config, flagSet *flag.FlagSet) {
-	flagSet.StringVar(&conf.ConfigFile, "config",
+func init() {
+
+	flag.CommandLine.StringVar(&Config.ConfigFile, "config",
 		"./nuage-oci-agent-config.yaml", "configuration file for Nuage OCI agent server. If this file is specified, all remaining arguments will be ignored")
 
 	// VSD flags
-	flagSet.StringVar(&conf.VsdConfig.Url, "vsdurl",
+	flag.CommandLine.StringVar(&Config.Vsd.Url, "vsdurl",
 		"", "Nuage VSD URL")
-	flagSet.StringVar(&conf.VsdConfig.APIVersion, "vsdapiversion",
+	flag.CommandLine.StringVar(&Config.Vsd.APIVersion, "vsdapiversion",
 		"v5_0", "Nuage VSP API Version")
-	flagSet.StringVar(&conf.VsdConfig.Enterprise, "vsdenterprise",
+	flag.CommandLine.StringVar(&Config.Vsd.Enterprise, "vsdenterprise",
 		"", "Nuage Enterprise Name for OCI containers")
-	flagSet.StringVar(&conf.VsdConfig.Domain, "vsddomain",
+	flag.CommandLine.StringVar(&Config.Vsd.Domain, "vsddomain",
 		"", "Nuage Domain Name for OCI containers")
-	flagSet.StringVar(&conf.VsdConfig.CertFile, "vsdcertfile",
-		"./nuage-oci-agent-server.crt", "VSD certificate file for Nuage OCI agent server")
-	flagSet.StringVar(&conf.VsdConfig.KeyFile, "vsdkeyfile",
-		"./nuage-oci-agent-server.key", "VSD private key file for Nuage OCI agent server")
+	flag.CommandLine.StringVar(&Config.Vsd.CertFile, "vsdcertfile",
+		"./nuage-oci-agent-server.crt", "VSD login certificate file")
+	flag.CommandLine.StringVar(&Config.Vsd.KeyFile, "vsdkeyfile",
+		"./nuage-oci-agent-server.key", "VSD login private key file")
 
 	// Agent Server flags
-	flagSet.StringVar(&conf.AgentServerConfig.ServerPort, "serverport",
-		"7443", "Nuage OCI agent server port")
+	flag.CommandLine.StringVar(&Config.AgentServer.ServerPort, "serverport",
+		"7443", "Server port")
 
-	flagSet.StringVar(&conf.AgentServerConfig.CaFile, "cafile",
-		"/opt/nuage/etc/ca.crt", "Nuage OCI agent server CA certificate")
+	flag.CommandLine.StringVar(&Config.AgentServer.CaFile, "cafile",
+		"/opt/nuage/etc/ca.crt", "Server CA certificate")
 
-	flagSet.StringVar(&conf.AgentServerConfig.CertCaFile, "certcafile",
-		"/opt/nuage/etc/agent-server.pem", "Nuage OCI agent server certificate (server + CA certificates PEM file)")
+	flag.CommandLine.StringVar(&Config.AgentServer.CertCaFile, "certcafile",
+		"/opt/nuage/etc/agent-server.pem", "Server certificate (server + CA certificates PEM file)")
 
-	flagSet.StringVar(&conf.AgentServerConfig.KeyFile, "keyfile",
-		"/opt/nuage/etc/agent-server.key", "Nuage OCI agent server private key file")
+	flag.CommandLine.StringVar(&Config.AgentServer.KeyFile, "keyfile",
+		"/opt/nuage/etc/agent-server.key", "Server private key file")
 
 	// Set the values for log_dir and logtostderr.  Because this happens before flag.Parse(), cli arguments will override these.
 	// Also set the DefValue parameter so -help shows the new defaults.
 	// XXX - Make sure "glog" package is imported at this point, otherwise this will panic
-	flagSet.Lookup("log_dir").DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
-	flagSet.Lookup("logtostderr").DefValue = "false"
-	flagSet.Lookup("stderrthreshold").DefValue = errorLogLevel
+	flag.CommandLine.Lookup("log_dir").DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
+	flag.CommandLine.Lookup("logtostderr").DefValue = "false"
+	flag.CommandLine.Lookup("stderrthreshold").DefValue = errorLogLevel
 
 	flag.Parse()
 
@@ -74,6 +78,16 @@ func Flags(conf *config.Config, flagSet *flag.FlagSet) {
 		os.MkdirAll(flag.CommandLine.Lookup("log_dir").DefValue, os.ModePerm)
 	}
 
+	// Periodic flush of glog logs
+	go func() {
+		// Adjust accordingly
+		var interval = 1 * time.Second
+
+		for _ = range time.Tick(interval) {
+			glog.Flush()
+		}
+	}()
+
 }
 
 // Silly little wrapper around os.Exit(). Needed since os.Exit() does not honor defer calls and glog.Fatalf() looks ugly _and_ does not flush the logs.
@@ -84,10 +98,6 @@ func osExit(context string, err error) {
 }
 
 func main() {
-
-	Config = new(config.Config)
-
-	Flags(Config, flag.CommandLine)
 
 	if len(os.Args) == 1 { // With no arguments, print default usage
 		flag.PrintDefaults()
@@ -106,7 +116,7 @@ func main() {
 		osExit("VSD client error", err)
 	}
 
-	if err := agentserver.Server(Config.AgentServerConfig); err != nil {
+	if err := server.Server(Config.AgentServer); err != nil {
 		osExit("Failed to start OCI agent server", err)
 	}
 

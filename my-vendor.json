@@ -1,0 +1,6 @@
+{
+	"comment": "",
+	"ignore": "github.com/nuagenetworks/ github.com/OpenPlatformSDN/nuage-cni/",
+	"package": [],
+	"rootPath": "github.com/OpenPlatformSDN/nuage-oci-agent"
+}
